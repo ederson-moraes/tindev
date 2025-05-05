@@ -1,8 +1,10 @@
 import './App.css'
+import logo from './assets/logo.svg'
+import Login from './pages/Login'
 
 function App() {
   return (
-    <h1>hello</h1>
+    <Login></Login>
   )
 }
 
