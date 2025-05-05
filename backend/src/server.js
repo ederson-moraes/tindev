@@ -6,6 +6,13 @@ const server = express()
 const dotenv = require('dotenv')
 dotenv.config()
 
+server.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*")
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+    res.header('Access-Control-Allow-Headers', 'user, Content-Type')
+    next()
+})
+
 mongoose.connect(process.env.MONGO_URL).then(() => {
     console.log('MongoDB connected')
 }).catch((err) => {

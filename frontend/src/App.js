@@ -1,10 +1,11 @@
 import './App.css'
 import logo from './assets/logo.svg'
-import Login from './pages/Login'
+
+import RoutesApp from './routes'
 
 function App() {
   return (
-    <Login></Login>
+    <RoutesApp />
   )
 }
 

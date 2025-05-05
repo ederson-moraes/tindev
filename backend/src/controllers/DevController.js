@@ -31,7 +31,7 @@ module.exports = {
             let userExists = await Dev.findOne({ user: github_username })
 
             if (userExists) {
-                return res.json({ message: 'User already exists', user: userExists })
+                return res.json(userExists)
             }
 
             const apiResponse = await axios.get(`https://api.github.com/users/${github_username}`)
@@ -39,13 +39,13 @@ module.exports = {
             const { name, login, avatar_url, bio } = apiResponse.data
 
             const dev = await Dev.create({
-                name: apiResponse.data.name,
-                user: apiResponse.data.login,
-                bio: apiResponse.data.bio,
-                avatar: apiResponse.data.avatar_url,
+                name: name || login, // Fallback to login if name is null
+                user: login,
+                bio: bio || 'No bio available', // Fallback to default bio if null
+                avatar: avatar_url,
             })
 
-            return res.json(dev)
+            return res.status(201).json(dev)
 
         } catch (error) {
             if (error.response && error.response.status === 404) {
