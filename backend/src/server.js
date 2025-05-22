@@ -1,17 +1,30 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const cors = require('cors')
+
 const routes = require('./routes')
-const server = express()
+
+const app = express()
+const server = require('http').Server(app)
+const io = require('socket.io')(server, {
+    cors: {
+        origin: 'http://192.168.1.161:3000',
+        methods: ['GET', 'POST'],
+    }
+})
+
+const connectedUsers = {}
+
+io.on('connection', (socket) => {
+    const { user } = socket.handshake.query
+
+    console.log(`User connected: ${user}` + ` Socket ID: ${socket.id}`)
+
+    connectedUsers[user] = socket.id
+})
 
 const dotenv = require('dotenv')
 dotenv.config()
-
-server.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*")
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-    res.header('Access-Control-Allow-Headers', 'user, Content-Type')
-    next()
-})
 
 mongoose.connect(process.env.MONGO_URL).then(() => {
     console.log('MongoDB connected')
@@ -19,8 +32,17 @@ mongoose.connect(process.env.MONGO_URL).then(() => {
     console.log(err)
 })
 
-server.use(express.json())
-server.use(routes)
+app.use((req, res, next) => {
+    req.io = io
+    req.connectedUsers = connectedUsers
+
+    return next()
+}
+)
+
+app.use(cors())
+app.use(express.json())
+app.use(routes)
 
 
 server.listen(process.env.PORT, () => {

@@ -27,7 +27,6 @@ module.exports = {
                 return res.status(400).json({ error: 'Username not provided' })
             }
 
-
             let userExists = await Dev.findOne({ user: github_username })
 
             if (userExists) {
@@ -38,15 +37,24 @@ module.exports = {
 
             const { name, login, avatar_url, bio } = apiResponse.data
 
-            const dev = await Dev.create({
-                name: name || login, // Fallback to login if name is null
-                user: login,
-                bio: bio || 'No bio available', // Fallback to default bio if null
-                avatar: avatar_url,
-            })
+            let dev
+            try {
+                dev = await Dev.create({
+                    name: name || login,
+                    user: login,
+                    bio: bio || 'No bio available',
+                    avatar: avatar_url,
+                })
+            } catch (err) {
+                // If duplicate key error, fetch the existing user
+                if (err.code === 11000) {
+                    dev = await Dev.findOne({ user: login })
+                } else {
+                    throw err
+                }
+            }
 
             return res.status(201).json(dev)
-
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 return res.status(400).json({ error: 'User not found' })
@@ -54,24 +62,6 @@ module.exports = {
             console.error(error)
             return res.status(500).json({ error: 'Internal server error' })
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     }
 }
